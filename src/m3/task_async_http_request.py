@@ -22,6 +22,13 @@ async def create_request(url: str, session: aiohttp.ClientSession) -> tuple[str,
     return url, status_code
 
 
+def create_file(path: str, data: dict[str, int]) -> None:
+    with open(path, "w") as file:
+        for key, value in data.items():
+            json_str = json.dumps({"url": key, "status_code": value})
+            file.write(f"{json_str}\n")
+
+
 async def fetch_urls(urls: list[str], file_path: str) -> dict[str, int]:
     tasks = []
 
@@ -34,10 +41,7 @@ async def fetch_urls(urls: list[str], file_path: str) -> dict[str, int]:
     results = {url: status_code for url, status_code in results}
 
     # создаём файл (синхронно, т.к. в условии нет aiofiles)
-    with open(file_path, "w") as file:
-        for key, value in results.items():
-            json_str = json.dumps({"url": key, "status_code": value})
-            file.write(f"{json_str}\n")
+    create_file(file_path, results)
 
     return results
 
