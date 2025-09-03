@@ -1,4 +1,4 @@
-class MetaSingleton(type):
+class SingletonMetaclass(type):
     _instances = {}
 
     def __call__(cls, *args, **kwargs):
@@ -7,11 +7,11 @@ class MetaSingleton(type):
         return cls._instances[cls]
 
 
-class Singleton1(metaclass=MetaSingleton):
+class MetaSingleton(metaclass=SingletonMetaclass):
     pass
 
 
-class Singleton2:
+class NewSingleton:
     _instance = None
 
     def __new__(cls, *args, **kwargs):
@@ -20,18 +20,18 @@ class Singleton2:
         return cls._instance
 
 
-class _Singleton3:
+class _SingletonModule:
     pass
 
 
-singleton_obj = _Singleton3()
+singleton_obj = _SingletonModule()
 
 
 if __name__ == "__main__":
-    s1 = Singleton1()
-    s2 = Singleton1()
+    s1 = MetaSingleton()
+    s2 = MetaSingleton()
     assert id(s1) == id(s2)
 
-    s3 = Singleton2()
-    s4 = Singleton2()
+    s3 = NewSingleton()
+    s4 = NewSingleton()
     assert id(s3) == id(s4)
