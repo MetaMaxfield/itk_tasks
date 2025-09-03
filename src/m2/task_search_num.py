@@ -1,8 +1,8 @@
 list_nums = [1, 2, 3, 45, 356, 569, 600, 705, 923]
 
 
-def search(number: id):
-    if not (list_nums[0] <= number <= list_nums[-1]):
+def search(number: int) -> bool:
+    if not list_nums or not (list_nums[0] <= number <= list_nums[-1]):
         return False
 
     left = 0
