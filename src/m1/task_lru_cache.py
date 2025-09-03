@@ -3,13 +3,14 @@ from collections import OrderedDict
 from functools import wraps
 
 
-def lru_cache(*args, **kwargs):
+def lru_cache(_func=None, *, maxsize=128):
     def decorator(func):
         @wraps(func)
         def wrapper(*args, **kwargs):
             key = (args, frozenset(kwargs.items()))
 
             if key in cache:
+                cache.move_to_end(key)
                 return cache[key]
 
             if len(cache) == maxsize:
@@ -22,12 +23,9 @@ def lru_cache(*args, **kwargs):
         cache = OrderedDict()
         return wrapper
 
-    if "maxsize" in kwargs:
-        maxsize = kwargs.pop("maxsize")
+    if _func is None:
         return decorator
-    else:
-        maxsize = float("inf")
-        return decorator(*args, **kwargs)
+    return decorator(_func)
 
 
 @lru_cache
