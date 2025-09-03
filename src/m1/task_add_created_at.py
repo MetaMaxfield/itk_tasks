@@ -4,7 +4,11 @@ from datetime import datetime
 class MetaAddAttribute(type):
     def __init__(cls, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        cls.created_at = str(datetime.now())
+        cls._created_at = datetime.now()
+
+    @property
+    def created_at(cls):
+        return cls._created_at.isoformat()
 
 
 class RandomClass(metaclass=MetaAddAttribute):
@@ -12,5 +16,4 @@ class RandomClass(metaclass=MetaAddAttribute):
 
 
 if __name__ == "__main__":
-    class_obj = RandomClass()
-    print(class_obj.created_at)
+    print(RandomClass.created_at)
