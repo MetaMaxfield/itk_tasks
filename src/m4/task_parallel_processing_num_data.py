@@ -4,6 +4,8 @@ import random
 from concurrent.futures import ThreadPoolExecutor
 from contextlib import contextmanager
 from datetime import datetime
+from pathlib import Path
+from typing import Generator
 
 from tabulate import tabulate
 
@@ -17,7 +19,7 @@ table_data = [
 
 
 @contextmanager
-def timer(runner_type):
+def timer(runner_type: str) -> Generator[None, None, None]:
     start_time = datetime.now()
     yield
     end_time = datetime.now()
@@ -25,28 +27,28 @@ def timer(runner_type):
     table_data.append([runner_type, str(end_time - start_time)])
 
 
-def data_collection(n: int):
+def data_collection(numbers: int) -> list[int]:
     nums = []
-    for _ in range(n):
+    for _ in range(numbers):
         nums.append(random.randrange(1, 1001))
     return nums
 
 
-def data_processing(number: int):
+def data_processing(number: int) -> None:
     """Factorial."""
     result = 1
     for num in range(1, number + 1):
         result *= num
 
 
-def run_one_thread_one_process(nums):
+def run_one_thread_one_process(nums: list[int]) -> None:
     """Base var."""
     with timer("Base var"):
-        for n in nums:
-            data_processing(n)
+        for num in nums:
+            data_processing(num)
 
 
-def run_pool_threads(nums):
+def run_pool_threads(nums: list[int]) -> None:
     """«А» var."""
     with timer("«А» var"):
         # использую одинаковое количество потоков и процессов для наглядности
@@ -54,28 +56,28 @@ def run_pool_threads(nums):
             executor.map(data_processing, nums)
 
 
-def run_pool_processes(nums):
+def run_pool_processes(nums: list[int]) -> None:
     """«Б» var."""
     with timer("«Б» var"):
         with multiprocessing.Pool(processes=CPU_COUNT) as pool:
             pool.map(data_processing, nums)
 
 
-def run_processes_and_queues(nums):
+def run_processes_and_queues(nums: list[int]) -> None:
     """«С» var."""
 
-    def worker(q):
+    def worker(task_queue: multiprocessing.Queue) -> None:
         while True:
-            n = q.get()
-            if n is None:
+            number = task_queue.get()
+            if number is None:
                 break
-            data_processing(n)
+            data_processing(number)
 
-    def producer(q, ns):
-        for n in ns:
-            q.put(n)
+    def producer(task_queue: multiprocessing.Queue, numbers: list[int]) -> None:
+        for number in numbers:
+            task_queue.put(number)
         for _ in range(CPU_COUNT):  # флаги для остановки выделенных процессов
-            q.put(None)
+            task_queue.put(None)
 
     with timer("«С» var"):
         queue = multiprocessing.Queue()
@@ -94,23 +96,24 @@ def run_processes_and_queues(nums):
             process.join()
 
 
-def print_tab():
+def print_tab() -> None:
     # использовал сторонний пакет, т.к. не нравились свои реализации...
     # ...(да и просто быстрее сделать так)
     tab = tabulate(table_data[1:], headers=table_data[0], tablefmt="github")
     print(tab)
 
 
-def create_csv_file():
+def create_csv_file() -> None:
     file_name = "tab.csv"
-    with open(file_name, "w") as file:
+    file_path = Path(__file__).resolve().parent / file_name
+    with open(file_path, "w") as file:
         writer = csv.writer(file)
         writer.writerows(table_data)
     print(f'\nCreated "{file_name}" with variants run times data.')
 
 
-def main():
-    nums = data_collection(1000000)
+def main() -> None:
+    nums = data_collection(10)
 
     runners = [
         run_one_thread_one_process,
